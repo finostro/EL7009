@@ -61,3 +61,11 @@
   ros_type_name: "sensor_msgs/msg/CameraInfo"
   gz_type_name: "gz.msgs.CameraInfo"
   direction: GZ_TO_ROS
+
+# gz topic published by DiffDrive plugin
+- ros_topic_name: "ground_truth_pose"
+  gz_topic_name: "/model/diff_bot/pose"
+  ros_type_name: "geometry_msgs/msg/PoseStamped"
+  gz_type_name: "gz.msgs.Pose"
+  direction: GZ_TO_ROS
+

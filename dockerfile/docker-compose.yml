@@ -1,0 +1,41 @@
+# ============================================================================
+# Docker Compose allows you to define and run multi-container applications.
+# Usage: docker-compose up -d
+
+
+services:
+  el7009:
+    restart: unless-stopped
+    build:
+      dockerfile: Dockerfile
+      network: host
+    image: pepeinostroza/el7009:latest
+    container_name: el7009
+    runtime: nvidia
+
+    # Environment variables
+    environment:
+      TERM: "tmux-256color"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all
+      DISPLAY: ${DISPLAY}
+      XAUTHORITY: /root/.Xauthority
+      QT_X11_NO_MITSHM: "1"
+
+    volumes:
+      - ..:/home/el7009/ws:rw  # Mount only source code (build artifacts isolated)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - ${HOME}/.config:/home/el7009/.config:rw
+      - ${HOME}/.tmux.conf:/home/el7009/.tmux.conf:rw
+      
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
