@@ -14,6 +14,7 @@ from geometry_msgs.msg import PoseWithCovarianceStamped
 from visualization_msgs.msg import Marker
 from geometry_msgs.msg import Point
 from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile, QoSDurabilityPolicy, QoSHistoryPolicy
 from scipy.signal import convolve
 import tf
 from tf_transformations import quaternion_from_euler, quaternion_multiply
@@ -38,6 +39,13 @@ class EkfLocalization(Node):
         self.laser_subscriber_ = self.create_subscription(LaserScan, 'scan', self.laser_callback_, 10)
         self.odom_subscriber_ = self.create_subscription(Odometry, 'odom', self.odom_callback_, 10)
         self.marker_publisher_ = self.create_publisher(Marker, 'marker', 10)
+
+        map_marker_qos = QoSProfile(
+            depth=1,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+        )
+        self.map_marker_publisher_ = self.create_publisher(Marker, 'map_marker', 10)
         self.publish_timer_ = self.create_timer(0.1, self.publish_timer_callback_)
         self.estimated_pose_publisher_ = self.create_publisher(PoseWithCovarianceStamped, 'ekf_pose', 10)
         self.estimated_pose_ = PoseWithCovarianceStamped()
@@ -55,12 +63,46 @@ class EkfLocalization(Node):
         self.estimated_pose_.pose.pose.orientation.z = 0.0
         self.estimated_pose_.pose.pose.orientation.w = 1.0
 
-        map_path = os.path.join(get_package_share_directory('amcl_launch'),'map','map_ekf.txt')
-        self.map_ = np.loadtxt(map_path)
+        map_path = os.path.join(get_package_share_directory('amcl_launch'),'map','depot_ekf_map.csv')
+        self.map_ = np.loadtxt(map_path, delimiter=',')
 
-        
-        
+        self.publish_map_marker_()
+
+
+    def publish_map_marker_(self):
+        marker_points = Marker()
+        marker_points.header.frame_id = 'map'
+        marker_points.header.stamp = self.get_clock().now().to_msg()
+        marker_points.ns = 'map_points'
+        marker_points.id = 0
+        marker_points.type = marker_points.SPHERE_LIST
+        marker_points.action = marker_points.ADD
+        marker_points.pose.position.x = 0.0
+        marker_points.pose.position.y = 0.0
+        marker_points.pose.position.z = 0.0
+        marker_points.pose.orientation.x = 0.0
+        marker_points.pose.orientation.y = 0.0
+        marker_points.pose.orientation.z = 0.0
+        marker_points.pose.orientation.w = 1.0
+        marker_points.scale.x = 0.1
+        marker_points.scale.y = 0.1
+        marker_points.scale.z = 0.1
+        marker_points.color.a = 1.0
+        marker_points.color.r = 0.0
+        marker_points.color.g = 0.0
+        marker_points.color.b = 1.0
+
+        for map_point in self.map_:
+            point = Point()
+            point.x = map_point[0]
+            point.y = map_point[1]
+            point.z = 0.0
+            marker_points.points.append(point)
+
+        self.map_marker_publisher_.publish(marker_points)
+
     def publish_timer_callback_(self):
+        self.publish_map_marker_()
         self.estimated_pose_.pose.pose.position.x = self.estimated_pose_2d[0]
         self.estimated_pose_.pose.pose.position.y = self.estimated_pose_2d[1]
         q = quaternion_from_euler(0, 0, self.estimated_pose_2d[2])

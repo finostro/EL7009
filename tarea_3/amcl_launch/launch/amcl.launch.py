@@ -56,6 +56,20 @@ def generate_launch_description():
 
     )
 
+    # Static transform publisher 
+    static_transform_publisher_map_odom = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher',
+        arguments=[
+            # '--x', '-144.0', '--y', '38', '--z', '0.0',
+            '--x', '0.0', '--y', '0.0', '--z', '0.0',
+            '--roll', '0', '--pitch', '0', '--yaw', '0',
+            '--frame-id', '/map',
+            '--child-frame-id', '/industrial-warehouse'
+        ]
+    )
+
     # Launch Robot State Publisher Node
     urdf_path = os.path.join(get_package_share_directory('el7009_diff_drive_robot'),'urdf','robot.urdf.xacro')
     rsp = IncludeLaunchDescription(
@@ -76,4 +90,5 @@ def generate_launch_description():
     if playback:
         description.add_action(odom_to_tf)
         description.add_action(rsp)
+        description.add_action(static_transform_publisher_map_odom)
     return description

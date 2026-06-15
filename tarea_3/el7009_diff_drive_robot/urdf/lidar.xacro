@@ -45,7 +45,7 @@
             </scan>
             <range>
                <min>0.3</min>
-               <max>4.0</max>
+               <max>8.0</max>
             </range>
          </lidar>
       </sensor>

@@ -17,7 +17,7 @@ def generate_launch_description():
     rviz = LaunchConfiguration('rviz')
 
     # Path to default world 
-    world_path = os.path.join(get_package_share_directory(package_name),'worlds', 'industrial-warehouse.sdf')
+    world_path = os.path.join(get_package_share_directory(package_name),'worlds', 'depot.sdf')
 
     # Launch Arguments
     declare_world = DeclareLaunchArgument(
@@ -56,6 +56,7 @@ def generate_launch_description():
                         executable='create',
                         arguments=['-topic', 'robot_description',
                                    '-name', 'diff_bot',
+                                   '-x', '5.0',
                                    '-z', '0.2'],
                         output='screen'
     )
@@ -92,7 +93,7 @@ def generate_launch_description():
             '--x', '0.0', '--y', '0.0', '--z', '0.0',
             '--roll', '0', '--pitch', '0', '--yaw', '0',
             '--frame-id', '/map',
-            '--child-frame-id', '/industrial-warehouse'
+            '--child-frame-id', '/world_demo'
         ]
     )
     # Launch them all!
